@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Employee Attrition Prediction - CSV Upload{% endblock %}
+{% block page_title %}Bulk CSV Prediction & Batch Processing{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <!-- Instruction & Template Card -->
+  <div class="card mb-4 border-0 shadow-sm bg-white">
+    <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <h4 class="fw-bold mb-1 text-dark"><i class="bi bi-file-earmark-spreadsheet-fill text-success me-2"></i>Batch Attrition Risk Evaluation</h4>
+        <p class="text-secondary small mb-0">
+          Upload an employee roster CSV file to run the trained machine learning pipeline across all records simultaneously.
+        </p>
+      </div>
+      <div>
+        <a href="{{ url_for('download_csv_template') }}" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-download me-1"></i>Download Sample CSV Template
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Form Card -->
+  <div class="card mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-cloud-arrow-up text-primary me-2"></i>Upload Employee Dataset (CSV)</h5>
+    </div>
+    <div class="card-body p-4">
+      <form method="POST" action="{{ url_for('bulk_predict_page') }}" enctype="multipart/form-data">
+        <div class="row align-items-center g-3">
+          <div class="col-md-9">
+            <input type="file" name="file" class="form-control" accept=".csv" required>
+            <div class="form-text small text-muted">
+              File must be a standard CSV containing employee attributes (Age, Department, MonthlyIncome, OverTime, etc.). Target column 'Attrition' is optional and will not be used as an input feature.
+            </div>
+          </div>
+          <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+              <i class="bi bi-gear-wide-connected me-1"></i>Process Bulk Predictions
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Results Section if available -->
+  {% if summary %}
+    <!-- Summary KPI Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3 col-sm-6">
+        <div class="card h-100">
+          <div class="kpi-card">
+            <div class="kpi-icon bg-primary-subtle text-primary">
+              <i class="bi bi-files"></i>
+            </div>
+            <div>
+              <div class="kpi-value">{{ summary.total_records }}</div>
+              <div class="kpi-label">Evaluated Records</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3 col-sm-6">
+        <div class="card h-100">
+          <div class="kpi-card">
+            <div class="kpi-icon bg-danger-subtle text-danger">
+              <i class="bi bi-exclamation-octagon-fill"></i>
+            </div>
+            <div>
+              <div class="kpi-value text-danger">{{ summary.high_risk_count }}</div>
+              <div class="kpi-label">High Risk (&ge;60%)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3 col-sm-6">
+        <div class="card h-100">
+          <div class="kpi-card">
+            <div class="kpi-icon bg-warning-subtle text-warning">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div>
+              <div class="kpi-value text-warning">{{ summary.medium_risk_count }}</div>
+              <div class="kpi-label">Medium Risk (30-60%)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3 col-sm-6">
+        <div class="card h-100">
+          <div class="kpi-card">
+            <div class="kpi-icon bg-success-subtle text-success">
+              <i class="bi bi-shield-check"></i>
+            </div>
+            <div>
+              <div class="kpi-value text-success">{{ summary.low_risk_count }}</div>
+              <div class="kpi-label">Low Risk (&lt;30%)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Table with CSV Export -->
+    <div class="card mb-4">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <div>
+          <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-table text-primary me-2"></i>Prediction Output Preview (Showing up to 100 rows)</h5>
+          <small class="text-muted">Processed with champion model: {{ summary.model_name }}</small>
+        </div>
+        <div>
+          <a href="{{ url_for('download_bulk_results') }}" class="btn btn-success btn-sm fw-semibold shadow-sm">
+            <i class="bi bi-file-earmark-arrow-down me-1"></i>Download Full Results CSV
+          </a>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+          <table class="table table-hover table-striped align-middle mb-0 small">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th scope="col" class="ps-3">#</th>
+                <th scope="col">Department</th>
+                <th scope="col">Job Role</th>
+                <th scope="col">Age</th>
+                <th scope="col">Monthly Income</th>
+                <th scope="col">OverTime</th>
+                <th scope="col">Tenure</th>
+                <th scope="col">Probability</th>
+                <th scope="col">Risk Level</th>
+                <th scope="col">Predicted Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in preview_rows %}
+                <tr>
+                  <td class="ps-3 text-muted fw-bold">{{ loop.index }}</td>
+                  <td>{{ row.Department }}</td>
+                  <td>{{ row.JobRole }}</td>
+                  <td>{{ row.Age }}</td>
+                  <td>₹{{ "{:,.0f}".format(row.MonthlyIncome|float) }}</td>
+                  <td>
+                    <span class="badge {{ 'bg-danger-subtle text-danger' if row.OverTime == 'Yes' else 'bg-secondary-subtle text-secondary' }}">
+                      {{ row.OverTime }}
+                    </span>
+                  </td>
+                  <td>{{ row.YearsAtCompany }} yrs</td>
+                  <td class="fw-bold">{{ row['Attrition_Probability_%'] }}%</td>
+                  <td>
+                    {% if row.Risk_Category == 'High Risk' %}
+                      <span class="badge bg-danger">High Risk</span>
+                    {% elif row.Risk_Category == 'Medium Risk' %}
+                      <span class="badge bg-warning text-dark">Medium Risk</span>
+                    {% else %}
+                      <span class="badge bg-success">Low Risk</span>
+                    {% endif %}
+                  </td>
+                  <td class="fw-semibold {{ 'text-danger' if row.Predicted_Attrition == 'Likely to Leave' else 'text-success' }}">
+                    {{ row.Predicted_Attrition }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block page_title %}Workforce Attrition Analysis{% endblock %}
+{% block page_subtitle %}Exploratory data analysis of demographic, compensation, and satisfaction drivers{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <!-- Age Group Distribution -->
+    <div class="col-12 col-lg-6">
+        <div class="card-clean h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-calendar3 me-2 text-primary"></i>Attrition by Age Bracket
+                    </h6>
+                    <small class="text-muted">Turnover risk across different age generations</small>
+                </div>
+            </div>
+            <div style="position: relative; height: 280px;">
+                <canvas id="ageChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Income Bracket Distribution -->
+    <div class="col-12 col-lg-6">
+        <div class="card-clean h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-cash-stack me-2 text-success"></i>Monthly Income vs Attrition
+                    </h6>
+                    <small class="text-muted">Turnover concentration across salary tiers</small>
+                </div>
+            </div>
+            <div style="position: relative; height: 280px;">
+                <canvas id="incomeChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Job Satisfaction vs Attrition -->
+    <div class="col-12 col-lg-6">
+        <div class="card-clean h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-emoji-smile me-2 text-warning"></i>Job Satisfaction Ratings
+                    </h6>
+                    <small class="text-muted">Turnover rate across 1 (Low) to 4 (Very High)</small>
+                </div>
+            </div>
+            <div style="position: relative; height: 280px;">
+                <canvas id="satisfactionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Work-Life Balance vs Attrition -->
+    <div class="col-12 col-lg-6">
+        <div class="card-clean h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-heart-pulse me-2 text-danger"></i>Work-Life Balance Ratings
+                    </h6>
+                    <small class="text-muted">Impact of work-life harmony on retention</small>
+                </div>
+            </div>
+            <div style="position: relative; height: 280px;">
+                <canvas id="worklifeChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key HR Insights Card -->
+<div class="card-clean p-4">
+    <h6 class="fw-bold text-dark mb-3">
+        <i class="bi bi-lightbulb text-primary me-2"></i>Executive HR Insights from Dataset Analysis
+    </h6>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="p-3 rounded-3 bg-light border">
+                <span class="fw-semibold text-danger d-block mb-1"><i class="bi bi-exclamation-triangle me-1"></i> Critical Risk in Early Careers</span>
+                <p class="small text-muted mb-0">Employees under 30 years and within their first 2 years experience an attrition rate exceeding 30%, indicating early-onboarding vulnerabilities.</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="p-3 rounded-3 bg-light border">
+                <span class="fw-semibold text-warning d-block mb-1"><i class="bi bi-clock-history me-1"></i> Overtime Fatigue Factor</span>
+                <p class="small text-muted mb-0">Employees working consistent overtime are over 3x more likely to leave the organization compared to those on standard working schedules.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const ageData = {{ data.age_chart | tojson }};
+    const incData = {{ data.income_chart | tojson }};
+    const satData = {{ data.satisfaction_chart | tojson }};
+    const wlbData = {{ data.worklife_chart | tojson }};
+
+    // Age Chart
+    new Chart(document.getElementById('ageChart'), {
+        type: 'bar',
+        data: {
+            labels: ageData.labels,
+            datasets: [
+                { label: 'Left', data: ageData.attrition, backgroundColor: '#ef4444', borderRadius: 4 },
+                { label: 'Retained', data: ageData.retained, backgroundColor: '#3b82f6', borderRadius: 4 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { stacked: true }, y: { stacked: true } }
+        }
+    });
+
+    // Income Chart
+    new Chart(document.getElementById('incomeChart'), {
+        type: 'bar',
+        data: {
+            labels: incData.labels,
+            datasets: [
+                { label: 'Left', data: incData.attrition, backgroundColor: '#ef4444', borderRadius: 4 },
+                { label: 'Retained', data: incData.retained, backgroundColor: '#10b981', borderRadius: 4 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { stacked: true }, y: { stacked: true } }
+        }
+    });
+
+    // Satisfaction Chart
+    new Chart(document.getElementById('satisfactionChart'), {
+        type: 'bar',
+        data: {
+            labels: satData.labels,
+            datasets: [
+                { label: 'Left', data: satData.attrition, backgroundColor: '#ef4444', borderRadius: 4 },
+                { label: 'Retained', data: satData.retained, backgroundColor: '#f59e0b', borderRadius: 4 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { stacked: true }, y: { stacked: true } }
+        }
+    });
+
+    // Work-Life Balance Chart
+    new Chart(document.getElementById('worklifeChart'), {
+        type: 'bar',
+        data: {
+            labels: wlbData.labels,
+            datasets: [
+                { label: 'Left', data: wlbData.attrition, backgroundColor: '#ef4444', borderRadius: 4 },
+                { label: 'Retained', data: wlbData.retained, backgroundColor: '#8b5cf6', borderRadius: 4 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { stacked: true }, y: { stacked: true } }
+        }
+    });
+</script>
+{% endblock %}

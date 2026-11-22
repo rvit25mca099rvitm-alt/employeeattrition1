@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block page_title %}Model Evaluation & Performance{% endblock %}
+{% block page_subtitle %}Comprehensive evaluation metrics for the production machine learning model{% endblock %}
+
+{% block content %}
+{% set model_name = metrics.best_model_name %}
+{% set res = metrics.results[model_name] %}
+
+<!-- Model Header Banner -->
+<div class="card-clean p-4 mb-4 bg-white border-start border-4 border-primary">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-primary px-3 py-1 fs-6">
+                    <i class="bi bi-cpu-fill me-1"></i> Algorithm: {{ model_name }}
+                </span>
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1">Active Production Model</span>
+            </div>
+            <p class="text-muted small mb-0 mt-2">
+                This project employs <strong>{{ model_name }} with Balanced Class Weights</strong>. It was selected for its high <strong>Recall ({{ (res.recall * 100) | round(2) }}%)</strong>, <strong>ROC-AUC ({{ (res.roc_auc * 100) | round(2) }}%)</strong>, and direct mathematical compatibility with <strong>SHAP Explainable AI</strong>.
+            </p>
+        </div>
+
+        <div class="d-flex gap-4 text-center">
+            <div>
+                <div class="text-muted small">Training Cohort</div>
+                <div class="fw-bold fs-5 text-dark">{{ metrics.train_size }} (80%)</div>
+            </div>
+            <div class="border-start ps-4">
+                <div class="text-muted small">Test Cohort</div>
+                <div class="fw-bold fs-5 text-dark">{{ metrics.test_size }} (20%)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Metrics Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-clean p-3 text-center">
+            <small class="text-muted text-uppercase fw-bold d-block mb-1">Accuracy</small>
+            <h3 class="fw-bold text-dark mb-0">{{ (res.accuracy * 100) | round(2) }}%</h3>
+            <small class="text-muted">Overall correctness</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-clean p-3 text-center">
+            <small class="text-muted text-uppercase fw-bold d-block mb-1">Recall</small>
+            <h3 class="fw-bold text-success mb-0">{{ (res.recall * 100) | round(2) }}%</h3>
+            <small class="text-muted">Turnover detection</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-clean p-3 text-center">
+            <small class="text-muted text-uppercase fw-bold d-block mb-1">Precision</small>
+            <h3 class="fw-bold text-primary mb-0">{{ (res.precision * 100) | round(2) }}%</h3>
+            <small class="text-muted">Prediction accuracy</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-clean p-3 text-center">
+            <small class="text-muted text-uppercase fw-bold d-block mb-1">F1-Score</small>
+            <h3 class="fw-bold text-info mb-0">{{ (res.f1_score * 100) | round(2) }}%</h3>
+            <small class="text-muted">Harmonic balance</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-clean p-3 text-center">
+            <small class="text-muted text-uppercase fw-bold d-block mb-1">ROC-AUC</small>
+            <h3 class="fw-bold text-warning mb-0">{{ (res.roc_auc * 100) | round(2) }}%</h3>
+            <small class="text-muted">Separability score</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-clean p-3 text-center">
+            <small class="text-muted text-uppercase fw-bold d-block mb-1">Test Samples</small>
+            <h3 class="fw-bold text-secondary mb-0">{{ metrics.test_size }}</h3>
+            <small class="text-muted">Evaluated records</small>
+        </div>
+    </div>
+</div>
+
+<!-- Confusion Matrix & Architectural Justification -->
+<div class="row g-4 mb-4">
+    <!-- Confusion Matrix -->
+    <div class="col-12 col-lg-6">
+        <div class="card-clean p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-grid-3x3 text-primary me-2"></i>Confusion Matrix (Test Evaluation)
+                </h6>
+                <span class="badge bg-primary">{{ model_name }}</span>
+            </div>
+
+            <div class="row g-2 text-center my-3">
+                <div class="col-6">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <small class="text-muted d-block">True Negative (Retained)</small>
+                        <h3 class="fw-bold text-success mb-0">{{ res.confusion_matrix.tn }}</h3>
+                        <span class="badge bg-success-subtle text-success small">Correct Non-Attrition</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <small class="text-muted d-block">False Positive (False Alarm)</small>
+                        <h3 class="fw-bold text-warning mb-0">{{ res.confusion_matrix.fp }}</h3>
+                        <span class="badge bg-warning-subtle text-warning small">Proactive Check-in</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <small class="text-muted d-block">False Negative (Missed)</small>
+                        <h3 class="fw-bold text-danger mb-0">{{ res.confusion_matrix.fn }}</h3>
+                        <span class="badge bg-danger-subtle text-danger small">Missed Departure</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <small class="text-muted d-block">True Positive (Detected)</small>
+                        <h3 class="fw-bold text-primary mb-0">{{ res.confusion_matrix.tp }}</h3>
+                        <span class="badge bg-primary-subtle text-primary small">Successfully Detected</span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-muted small text-center mb-0">
+                Evaluation conducted on an independent stratified test partition of <strong>{{ metrics.test_size }} employees</strong>.
+            </p>
+        </div>
+    </div>
+
+    <!-- Algorithm Justification & XAI Compatibility -->
+    <div class="col-12 col-lg-6">
+        <div class="card-clean p-4 h-100">
+            <h6 class="fw-bold text-dark mb-3">
+                <i class="bi bi-journal-check text-primary me-2"></i>Why This Algorithm Is Used in This Project
+            </h6>
+
+            <div class="mb-3">
+                <span class="fw-semibold text-dark d-block mb-1">
+                    <i class="bi bi-shield-check text-success me-1"></i> 1. High Sensitivity to Class Imbalance (Recall: {{ (res.recall * 100) | round(2) }}%)
+                </span>
+                <p class="small text-muted mb-0">
+                    Employee attrition is inherently imbalanced (~16% turnover rate). By using balanced class weights, the model prioritizes identifying true turnover risks, detecting over 70% of departing employees before they leave.
+                </p>
+            </div>
+
+            <div class="mb-3">
+                <span class="fw-semibold text-dark d-block mb-1">
+                    <i class="bi bi-diagram-3 text-primary me-1"></i> 2. Direct SHAP Explainability & Transparency
+                </span>
+                <p class="small text-muted mb-0">
+                    Logistic Regression guarantees linear additivity in log-odds space, allowing <strong>SHAP LinearExplainer</strong> to calculate exact, game-theoretic individual feature contributions without approximation errors.
+                </p>
+            </div>
+
+            <div class="mb-0">
+                <span class="fw-semibold text-dark d-block mb-1">
+                    <i class="bi bi-file-earmark-lock text-warning me-1"></i> 3. Ethical and Fair HR Governance
+                </span>
+                <p class="small text-muted mb-0">
+                    Unlike opaque complex models, Logistic Regression provides clear, explainable decision boundaries, ensuring HR decisions remain defensible, transparent, and fair.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

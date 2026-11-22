@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Model Evaluation & Comparison - Employee Attrition{% endblock %}
+{% block page_title %}Machine Learning Model Evaluation & Benchmark Comparison{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <!-- Champion Model Callout -->
+  <div class="card mb-4 border-0 shadow-sm bg-white" style="border-left: 5px solid var(--primary) !important;">
+    <div class="card-body p-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+          <span class="badge bg-primary fs-6 px-3 py-1 mb-2">
+            <i class="bi bi-trophy-fill me-1"></i>Selected Final Champion Model: {{ metadata.best_model_name }}
+          </span>
+          <h4 class="fw-bold text-dark mb-1">Empirical Model Selection Rationale</h4>
+          <p class="text-secondary small mb-0">{{ metadata.selection_rationale }}</p>
+        </div>
+        <div class="d-flex gap-2 text-center">
+          <div class="p-2 border rounded bg-light">
+            <div class="fw-bold text-primary fs-5">{{ metadata.evaluation_results[metadata.best_model_name].roc_auc }}</div>
+            <div class="small text-muted" style="font-size: 0.72rem;">ROC-AUC</div>
+          </div>
+          <div class="p-2 border rounded bg-light">
+            <div class="fw-bold text-success fs-5">{{ metadata.evaluation_results[metadata.best_model_name].recall }}</div>
+            <div class="small text-muted" style="font-size: 0.72rem;">Attrition Recall</div>
+          </div>
+          <div class="p-2 border rounded bg-light">
+            <div class="fw-bold text-dark fs-5">{{ metadata.evaluation_results[metadata.best_model_name].f1_score }}</div>
+            <div class="small text-muted" style="font-size: 0.72rem;">F1-Score</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Algorithm Comparison Table -->
+  <div class="card mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-speedometer text-primary me-2"></i>Multi-Classifier Performance Benchmark (Held-Out Test Set: 294 samples)</h5>
+      <span class="badge bg-secondary-subtle text-secondary">Random Seed = 42</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col" class="ps-4">Algorithm</th>
+              <th scope="col">Accuracy</th>
+              <th scope="col">Precision (Attrition)</th>
+              <th scope="col">Recall (Attrition)</th>
+              <th scope="col">F1-Score</th>
+              <th scope="col">ROC-AUC</th>
+              <th scope="col">Selection Score</th>
+              <th scope="col" class="pe-4 text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for name, res in metadata.evaluation_results.items() %}
+              <tr class="{{ 'table-primary fw-bold' if name == metadata.best_model_name else '' }}">
+                <td class="ps-4">
+                  {{ name }}
+                  {% if name == metadata.best_model_name %}
+                    <span class="badge bg-primary ms-1">Selected</span>
+                  {% endif %}
+                </td>
+                <td>{{ (res.accuracy * 100)|round(2) }}%</td>
+                <td>{{ (res.precision * 100)|round(2) }}%</td>
+                <td>
+                  <span class="badge {{ 'bg-success' if res.recall >= 0.50 else 'bg-warning text-dark' }}">
+                    {{ (res.recall * 100)|round(2) }}%
+                  </span>
+                </td>
+                <td>{{ res.f1_score }}</td>
+                <td class="fw-bold text-primary">{{ res.roc_auc }}</td>
+                <td>{{ metadata.selection_scores.get(name, '-') }}</td>
+                <td class="pe-4 text-center">
+                  {% if name == metadata.best_model_name %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Champion</span>
+                  {% else %}
+                    <span class="badge bg-light text-secondary border px-2 py-1">Candidate</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROC Curve and Confusion Matrix Row -->
+  <div class="row g-4 mb-4">
+    <!-- Combined ROC Curves Plot -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header bg-white py-3">
+          <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-graph-up text-primary me-2"></i>ROC Curve Comparison (All Models)</h5>
+          <small class="text-muted">Receiver Operating Characteristic - True Positive Rate vs False Positive Rate</small>
+        </div>
+        <div class="card-body p-2">
+          <div id="roc-chart"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confusion Matrix for Champion Model -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header bg-white py-3">
+          <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-grid-3x3 text-success me-2"></i>Confusion Matrix: {{ metadata.best_model_name }}</h5>
+          <small class="text-muted">Evaluated on 294 held-out test employees (47 Actual Leavers, 247 Actual Stayers)</small>
+        </div>
+        <div class="card-body p-4 text-center">
+          {% set cm = metadata.evaluation_results[metadata.best_model_name].confusion_matrix %}
+          <!-- [[TN, FP], [FN, TP]] -->
+          <div class="row g-3 justify-content-center">
+            <div class="col-6">
+              <div class="p-3 border rounded bg-success-subtle border-success-subtle">
+                <span class="small text-muted d-block">True Negative (Stayed & Predicted Stay)</span>
+                <span class="fs-3 fw-bold text-success">{{ cm[0][0] }}</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-3 border rounded bg-warning-subtle border-warning-subtle">
+                <span class="small text-muted d-block">False Positive (Stayed, Predicted Leave)</span>
+                <span class="fs-3 fw-bold text-warning-emphasis">{{ cm[0][1] }}</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-3 border rounded bg-danger-subtle border-danger-subtle">
+                <span class="small text-muted d-block">False Negative (Left, Predicted Stay)</span>
+                <span class="fs-3 fw-bold text-danger">{{ cm[1][0] }}</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-3 border rounded bg-primary-subtle border-primary-subtle">
+                <span class="small text-muted d-block">True Positive (Left & Predicted Leave)</span>
+                <span class="fs-3 fw-bold text-primary">{{ cm[1][1] }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 small text-muted">
+            <i class="bi bi-info-circle me-1"></i>Minimizing False Negatives is critical in HR retention to avoid missing employees planning to depart.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Classification Reports Accordion -->
+  <div class="card mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-file-earmark-text text-secondary me-2"></i>Detailed Classification Reports</h5>
+    </div>
+    <div class="card-body p-4">
+      <div class="accordion" id="accordionReports">
+        {% for name, res in metadata.evaluation_results.items() %}
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="heading{{ loop.index }}">
+              <button class="accordion-button {{ 'collapsed' if not loop.first else '' }}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}">
+                <strong>{{ name }}</strong> &mdash; Acc: {{ (res.accuracy*100)|round(1) }}%, Recall: {{ (res.recall*100)|round(1) }}%, ROC-AUC: {{ res.roc_auc }}
+              </button>
+            </h2>
+            <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {{ 'show' if loop.first else '' }}" data-bs-parent="#accordionReports">
+              <div class="accordion-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-sm table-striped mb-0 small">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="ps-3">Class</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1-Score</th>
+                        <th>Support</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="ps-3 fw-semibold">Stay (No - 0)</td>
+                        <td>{{ res.classification_report['0']['precision']|round(3) }}</td>
+                        <td>{{ res.classification_report['0']['recall']|round(3) }}</td>
+                        <td>{{ res.classification_report['0']['f1-score']|round(3) }}</td>
+                        <td>{{ res.classification_report['0']['support'] }}</td>
+                      </tr>
+                      <tr>
+                        <td class="ps-3 fw-semibold text-danger">Leave (Yes - 1)</td>
+                        <td class="text-danger">{{ res.classification_report['1']['precision']|round(3) }}</td>
+                        <td class="text-danger fw-bold">{{ res.classification_report['1']['recall']|round(3) }}</td>
+                        <td class="text-danger">{{ res.classification_report['1']['f1-score']|round(3) }}</td>
+                        <td>{{ res.classification_report['1']['support'] }}</td>
+                      </tr>
+                      <tr class="fw-bold table-light">
+                        <td class="ps-3">Macro Average</td>
+                        <td>{{ res.classification_report['macro avg']['precision']|round(3) }}</td>
+                        <td>{{ res.classification_report['macro avg']['recall']|round(3) }}</td>
+                        <td>{{ res.classification_report['macro avg']['f1-score']|round(3) }}</td>
+                        <td>{{ res.classification_report['macro avg']['support'] }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const plotsData = {{ evaluation_plots | tojson }};
+    const traces = [];
+
+    const colors = {
+      "Logistic Regression": "#0d6efd",
+      "Decision Tree": "#fd7e14",
+      "Random Forest": "#198754",
+      "XGBoost": "#6f42c1"
+    };
+
+    for (const [name, p] of Object.entries(plotsData)) {
+      if (p.roc_curve) {
+        traces.push({
+          x: p.roc_curve.fpr,
+          y: p.roc_curve.tpr,
+          mode: 'lines',
+          name: `${name} (AUC = ${p.roc_auc})`,
+          line: {color: colors[name] || '#6c757d', width: 2.5}
+        });
+      }
+    }
+
+    // Diagonal reference
+    traces.push({
+      x: [0, 1],
+      y: [0, 1],
+      mode: 'lines',
+      name: 'Random Chance (AUC = 0.50)',
+      line: {dash: 'dash', color: '#adb5bd', width: 1.5}
+    });
+
+    const layout = {
+      xaxis: {title: 'False Positive Rate (1 - Specificity)', range: [0, 1]},
+      yaxis: {title: 'True Positive Rate (Recall)', range: [0, 1.05]},
+      margin: {l: 50, r: 20, t: 30, b: 50},
+      height: 340,
+      legend: {orientation: 'h', y: -0.25, x: 0},
+      plot_bgcolor: "#ffffff",
+      paper_bgcolor: "#ffffff"
+    };
+
+    Plotly.newPlot('roc-chart', traces, layout, {responsive: true, displayModeBar: false});
+  });
+</script>
+{% endblock %}

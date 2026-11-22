@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block page_title %}Prediction & Explainable AI Result{% endblock %}
+{% block page_subtitle %}Comprehensive assessment for employee: {{ emp_ref }}{% endblock %}
+
+{% block content %}
+<!-- Top Result Summary Card -->
+<div class="card-clean p-4 mb-4">
+    <!-- Header with Employee Ref and Action Buttons -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-3 mb-4 gap-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="text-muted fw-semibold">Employee Identifier:</span>
+            <span class="badge bg-light text-dark border px-3 py-2 fs-6 fw-bold">{{ emp_ref }}</span>
+            <span class="text-muted d-none d-sm-inline">|</span>
+            <span class="text-dark fw-semibold">{{ emp_data.Department }}</span>
+            <span class="text-muted">&bull;</span>
+            <span class="text-muted">{{ emp_data.JobRole }}</span>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('predict') }}" class="btn btn-sm btn-outline-primary text-nowrap">
+                <i class="bi bi-arrow-left me-1"></i> Predict Another
+            </a>
+            <a href="{{ url_for('history') }}" class="btn btn-sm btn-light border text-nowrap">
+                <i class="bi bi-clock-history me-1"></i> View History
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Verdict and Profile Grid -->
+    <div class="row g-4 align-items-stretch">
+        <!-- Left: Key Output Tiles (Verdict, Probability, Risk Level) -->
+        <div class="col-12 col-lg-7 d-flex flex-column justify-content-between">
+            <div class="row g-3">
+                <!-- Verdict Tile -->
+                <div class="col-12 col-sm-6">
+                    <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-column justify-content-center">
+                        <small class="text-muted text-uppercase fw-bold d-block mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">Model Verdict</small>
+                        {% if result.prediction == 'Yes' %}
+                            <span class="badge bg-danger fs-6 px-3 py-2 text-wrap text-start d-inline-flex align-items-center">
+                                <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i> Attrition Predicted (Yes)
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success fs-6 px-3 py-2 text-wrap text-start d-inline-flex align-items-center">
+                                <i class="bi bi-check-circle-fill me-2 fs-5"></i> Retention Predicted (No)
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Probability Tile -->
+                <div class="col-6 col-sm-3">
+                    <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-column justify-content-center text-center">
+                        <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Turnover Chance</small>
+                        <h3 class="fw-bold mb-0" style="color: {{ result.risk_color }};">
+                            {{ result.probability }}%
+                        </h3>
+                    </div>
+                </div>
+
+                <!-- Risk Classification Tile -->
+                <div class="col-6 col-sm-3">
+                    <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-column justify-content-center text-center">
+                        <small class="text-muted text-uppercase fw-bold d-block mb-2" style="font-size: 0.72rem; letter-spacing: 0.5px;">Risk Category</small>
+                        <div>
+                            <span class="{{ result.risk_badge }} small fw-bold px-2 py-1">
+                                {{ result.risk_category }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description Note -->
+            <div class="alert alert-light border small text-muted mt-3 mb-0 py-2 px-3">
+                <i class="bi bi-info-circle text-primary me-1"></i> {{ result.risk_description }}
+            </div>
+        </div>
+
+        <!-- Right: Key Profile Parameters Box -->
+        <div class="col-12 col-lg-5">
+            <div class="p-3 rounded-3 border bg-light h-100">
+                <h6 class="fw-bold text-dark border-bottom pb-2 mb-3" style="font-size: 0.9rem;">
+                    <i class="bi bi-person-lines-fill text-primary me-2"></i>Key Profile Parameters
+                </h6>
+                <div class="row g-2 small text-muted">
+                    <div class="col-6">
+                        <span class="d-block text-secondary" style="font-size: 0.75rem;">Age & Gender:</span>
+                        <strong class="text-dark">{{ emp_data.Age }} yrs</strong>, {{ emp_data.Gender }} ({{ emp_data.MaritalStatus }})
+                    </div>
+                    <div class="col-6">
+                        <span class="d-block text-secondary" style="font-size: 0.75rem;">Monthly Salary:</span>
+                        <strong class="text-dark">₹{{ "{:,.0f}".format(emp_data.MonthlyIncome) }}</strong>
+                    </div>
+                    <div class="col-6 mt-2">
+                        <span class="d-block text-secondary" style="font-size: 0.75rem;">Overtime Required:</span>
+                        <span class="{% if emp_data.OverTime == 'Yes' %}text-danger fw-bold{% else %}text-success fw-bold{% endif %}">
+                            {{ emp_data.OverTime }}
+                        </span>
+                    </div>
+                    <div class="col-6 mt-2">
+                        <span class="d-block text-secondary" style="font-size: 0.75rem;">Tenure at Company:</span>
+                        <strong class="text-dark">{{ emp_data.YearsAtCompany }} yrs</strong> (Role: {{ emp_data.YearsInCurrentRole }} yrs)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section: Explainable AI (SHAP Contributions) -->
+<div class="row g-4 mb-4">
+    <!-- Chart: Individual Feature Attribution (SHAP Waterfall/Bar) -->
+    <div class="col-12 col-lg-7">
+        <div class="card-clean h-100 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-diagram-3 text-primary me-2"></i>SHAP Individual Feature Contributions
+                    </h6>
+                    <small class="text-muted">Top mathematical drivers influencing this specific employee's prediction</small>
+                </div>
+                <span class="badge bg-light text-muted border">SHAP LinearExplainer</span>
+            </div>
+
+            <div style="position: relative; height: 340px;">
+                <canvas id="individualShapChart"></canvas>
+            </div>
+
+            <!-- Caution / Explainability Note -->
+            <div class="alert alert-light border small text-muted mt-3 mb-0">
+                <i class="bi bi-shield-exclamation text-primary me-1"></i>
+                <strong>Explainability Notice:</strong> SHAP values explain how the machine learning model calculated this prediction based on patterns in historical workforce data. Positive bars (Red) increased attrition likelihood, while negative bars (Green) supported retention. SHAP does not establish a definite or guaranteed personal reason the employee will resign.
+            </div>
+        </div>
+    </div>
+
+    <!-- Factor Breakdown Cards -->
+    <div class="col-12 col-lg-5">
+        <div class="card-clean h-100 p-4 d-flex flex-column">
+            <h6 class="fw-bold text-dark mb-3">
+                <i class="bi bi-list-check text-primary me-2"></i>Detailed Impact Factors
+            </h6>
+
+            <!-- Risk Increasing Factors -->
+            <div class="mb-3">
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-semibold mb-2">
+                    <i class="bi bi-arrow-up-right me-1"></i> Factors Increasing Attrition Risk
+                </span>
+                {% if result.positive_factors %}
+                    <ul class="list-group list-group-flush small">
+                        {% for factor in result.positive_factors %}
+                            <li class="list-group-item px-0 py-1 d-flex justify-content-between align-items-center">
+                                <span class="text-dark">{{ factor.feature }}</span>
+                                <span class="badge bg-danger text-white">+{{ factor.value }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted small">No significant risk-increasing factors identified.</p>
+                {% endif %}
+            </div>
+
+            <!-- Retention Supporting Factors -->
+            <div class="mt-2">
+                <span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold mb-2">
+                    <i class="bi bi-arrow-down-right me-1"></i> Factors Supporting Retention
+                </span>
+                {% if result.negative_factors %}
+                    <ul class="list-group list-group-flush small">
+                        {% for factor in result.negative_factors %}
+                            <li class="list-group-item px-0 py-1 d-flex justify-content-between align-items-center">
+                                <span class="text-dark">{{ factor.feature }}</span>
+                                <span class="badge bg-success text-white">{{ factor.value }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted small">No strong retention-stabilizing factors detected.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section: HR Retention Recommendations -->
+<div class="card-clean p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h6 class="fw-bold text-dark mb-0">
+                <i class="bi bi-clipboard2-pulse text-success me-2"></i>Tailored HR Retention Recommendations
+            </h6>
+            <small class="text-muted">Rule-based, transparent suggestions customized to address identified concern areas</small>
+        </div>
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1">
+            {{ result.suggestions | length }} Actionable Steps
+        </span>
+    </div>
+
+    <div class="row g-3">
+        {% for sug in result.suggestions %}
+            <div class="col-md-6">
+                <div class="p-3 rounded-3 border bg-light h-100">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-check2-circle text-primary fs-5"></i>
+                        <span class="fw-semibold text-dark">{{ sug.category }}</span>
+                    </div>
+                    <div class="small text-danger mb-2">
+                        <strong>Observed Factor:</strong> {{ sug.concern }}
+                    </div>
+                    <p class="small text-muted mb-0">
+                        <strong>Recommended Action:</strong> {{ sug.action }}
+                    </p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="text-muted small mt-3">
+        <em>Note: Retention recommendations are decision-support guidelines intended to assist human resource managers in proactive dialogue, and should be evaluated alongside qualitative team context.</em>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const contributions = {{ result.all_contributions | tojson }};
+
+    const labels = contributions.map(c => c.feature);
+    const dataVals = contributions.map(c => c.value);
+    const backgroundColors = dataVals.map(v => v >= 0 ? '#ef4444' : '#10b981');
+
+    new Chart(document.getElementById('individualShapChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'SHAP Contribution to Attrition Risk',
+                data: dataVals,
+                backgroundColor: backgroundColors,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    grid: { color: '#f1f5f9' },
+                    title: { display: true, text: 'SHAP Value (Left: Retains Employee | Right: Increases Risk)' }
+                },
+                y: {
+                    grid: { display: false }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const val = context.raw;
+                            return (val > 0 ? 'Increases Risk by +' : 'Decreases Risk by ') + val;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

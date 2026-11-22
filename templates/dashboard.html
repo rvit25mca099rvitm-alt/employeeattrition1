@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block page_title %}Employee Attrition Analysis and Prediction Using Explainable AI{% endblock %}
+{% block page_subtitle %}Real-time workforce attrition metrics & departmental breakdown{% endblock %}
+
+{% block content %}
+<!-- Top KPI Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card shadow-sm">
+            <div class="kpi-title">Total Employees</div>
+            <div class="kpi-value">{{ summary.total_employees }}</div>
+            <div class="kpi-subtitle text-muted">
+                <i class="bi bi-people me-1 text-primary"></i> Active IBM HR Dataset
+            </div>
+            <i class="bi bi-people kpi-icon text-primary"></i>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card shadow-sm">
+            <div class="kpi-title">Employees Who Left</div>
+            <div class="kpi-value text-danger">{{ summary.left_count }}</div>
+            <div class="kpi-subtitle text-muted">
+                <i class="bi bi-person-x me-1 text-danger"></i> Voluntary turnover
+            </div>
+            <i class="bi bi-person-x kpi-icon text-danger"></i>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card shadow-sm">
+            <div class="kpi-title">Currently Retained</div>
+            <div class="kpi-value text-success">{{ summary.retained_count }}</div>
+            <div class="kpi-subtitle text-muted">
+                <i class="bi bi-person-check me-1 text-success"></i> Actively retained talent
+            </div>
+            <i class="bi bi-person-check kpi-icon text-success"></i>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card shadow-sm">
+            <div class="kpi-title">Overall Attrition Rate</div>
+            <div class="kpi-value text-warning">{{ summary.attrition_rate }}%</div>
+            <div class="kpi-subtitle text-muted">
+                <i class="bi bi-graph-up me-1 text-warning"></i> Baseline benchmark
+            </div>
+            <i class="bi bi-pie-chart kpi-icon text-warning"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Visualizations -->
+<div class="row g-4 mb-4">
+    <!-- Department-wise Attrition -->
+    <div class="col-12 col-lg-6">
+        <div class="card-clean h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-building me-2 text-primary"></i>Department-wise Attrition
+                </h6>
+                <span class="badge bg-light text-muted border">Dataset Distribution</span>
+            </div>
+            <div style="position: relative; height: 280px;">
+                <canvas id="deptChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attrition by Overtime -->
+    <div class="col-12 col-lg-6">
+        <div class="card-clean h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-clock-history me-2 text-warning"></i>Attrition by Overtime
+                </h6>
+                <span class="badge bg-light text-muted border">Overtime Correlation</span>
+            </div>
+            <div style="position: relative; height: 280px;">
+                <canvas id="overtimeChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attrition by Job Role (Horizontal Bar Chart) -->
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card-clean p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-briefcase me-2 text-primary"></i>Attrition by Job Role
+                </h6>
+                <span class="badge bg-light text-muted border">Comparative Breakdown</span>
+            </div>
+            <div style="position: relative; height: 320px;">
+                <canvas id="roleChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const deptData = {{ summary.department_chart | tojson }};
+    const roleData = {{ summary.role_chart | tojson }};
+    const overtimeData = {{ summary.overtime_chart | tojson }};
+
+    // 1. Department-wise Attrition Chart
+    new Chart(document.getElementById('deptChart'), {
+        type: 'bar',
+        data: {
+            labels: deptData.labels,
+            datasets: [
+                {
+                    label: 'Attrition (Left)',
+                    data: deptData.attrition,
+                    backgroundColor: '#ef4444',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Retained',
+                    data: deptData.retained,
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { stacked: true, grid: { display: false } },
+                y: { stacked: true, grid: { color: '#f1f5f9' } }
+            },
+            plugins: {
+                legend: { position: 'top', labels: { boxWidth: 12 } }
+            }
+        }
+    });
+
+    // 2. Overtime Attrition Chart
+    new Chart(document.getElementById('overtimeChart'), {
+        type: 'bar',
+        data: {
+            labels: overtimeData.labels,
+            datasets: [
+                {
+                    label: 'Attrition (Left)',
+                    data: overtimeData.attrition,
+                    backgroundColor: '#ef4444',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Retained',
+                    data: overtimeData.retained,
+                    backgroundColor: '#10b981',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { grid: { display: false } },
+                y: { grid: { color: '#f1f5f9' } }
+            },
+            plugins: {
+                legend: { position: 'top', labels: { boxWidth: 12 } }
+            }
+        }
+    });
+
+    // 3. Job Role Attrition Chart (Horizontal)
+    new Chart(document.getElementById('roleChart'), {
+        type: 'bar',
+        data: {
+            labels: roleData.labels,
+            datasets: [
+                {
+                    label: 'Attrition (Left)',
+                    data: roleData.attrition,
+                    backgroundColor: '#ef4444',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Retained',
+                    data: roleData.retained,
+                    backgroundColor: '#94a3b8',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { stacked: true, grid: { color: '#f1f5f9' } },
+                y: { stacked: true, grid: { display: false } }
+            },
+            plugins: {
+                legend: { position: 'top', labels: { boxWidth: 12 } }
+            }
+        }
+    });
+</script>
+{% endblock %}

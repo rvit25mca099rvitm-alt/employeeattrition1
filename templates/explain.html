@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Explainable AI (XAI) Methodology & Global SHAP Insights{% endblock %}
+{% block page_title %}Explainable AI (SHAP) Insights & Framework{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <!-- Educational Header Card -->
+  <div class="card mb-4 border-0 shadow-sm bg-white">
+    <div class="card-body p-4">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle mb-2">
+            <i class="bi bi-shield-check me-1"></i>Algorithmic Interpretability & Transparency
+          </span>
+          <h3 class="fw-bold text-dark mb-2">SHAP: SHapley Additive exPlanations</h3>
+          <p class="text-secondary mb-0">
+            Explainable AI (XAI) bridges the gap between high-performance machine learning models and human-centric HR decision-making. Rooted in cooperative game theory (Lloyd Shapley, Nobel Laureate 2012), SHAP computes the marginal contribution of each employee feature to guarantee fair, locally accurate, and consistent explanations.
+          </p>
+        </div>
+        <div class="col-lg-4 text-center text-lg-end mt-3 mt-lg-0">
+          <a href="{{ url_for('predict_page') }}" class="btn btn-primary shadow-sm">
+            <i class="bi bi-lightning-charge-fill me-1"></i>Try Local Employee SHAP
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Feature Importance Chart -->
+  <div class="card mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+      <div>
+        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-bar-chart-steps text-info me-2"></i>Global Feature Importance (Mean |SHAP Value|)</h5>
+        <small class="text-muted">Calculated on the independent test dataset across all engineered features</small>
+      </div>
+      <span class="badge bg-info-subtle text-info border border-info-subtle">Global Interpretability</span>
+    </div>
+    <div class="card-body p-3">
+      <div id="global-shap-page-chart"></div>
+    </div>
+  </div>
+
+  <!-- Local vs Global Interpretability Comparison -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header bg-white">
+          <h6 class="fw-bold mb-0 text-primary">
+            <i class="bi bi-globe me-2"></i>1. Global Interpretability
+          </h6>
+        </div>
+        <div class="card-body">
+          <p class="small text-secondary">
+            Global interpretability explains the overarching mechanics of the machine learning model across the entire workforce population:
+          </p>
+          <ul class="small text-secondary ps-3 mb-0">
+            <li class="mb-2">Identifies macroscopic organizational turnover drivers (e.g., <strong>OverTime</strong>, <strong>MonthlyIncome</strong>, and <strong>JobRole</strong>).</li>
+            <li class="mb-2">Helps People Ops and HR executives formulate macro policies (e.g., overtime capping, compensation restructuring).</li>
+            <li>Detects model drift or structural biases before deployment.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header bg-white">
+          <h6 class="fw-bold mb-0 text-success">
+            <i class="bi bi-person-fill-check me-2"></i>2. Local (Instance-Level) Interpretability
+          </h6>
+        </div>
+        <div class="card-body">
+          <p class="small text-secondary">
+            Local interpretability explains why the model made a specific prediction for an individual employee:
+          </p>
+          <ul class="small text-secondary ps-3 mb-0">
+            <li class="mb-2">Decomposes an individual's probability into specific positive risk drivers and negative protective buffers.</li>
+            <li class="mb-2">Powers interactive <strong>Waterfall Plots</strong> showing the journey from baseline expectation to final prediction.</li>
+            <li>Enables individualized, empathetic retention interventions rather than generic assumptions.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Global Drivers Table -->
+  <div class="card mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-table text-primary me-2"></i>Key Organizational Predictors Ranked by SHAP Magnitude</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col" class="ps-4">Rank</th>
+              <th scope="col">Predictor Feature</th>
+              <th scope="col">Mean |SHAP Impact|</th>
+              <th scope="col">HR Interpretation & Actionable Context</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in top_features[:10] %}
+              <tr>
+                <td class="ps-4 fw-bold text-muted">#{{ loop.index }}</td>
+                <td class="fw-semibold text-dark">{{ item.feature }}</td>
+                <td>
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                    {{ item.importance }}
+                  </span>
+                </td>
+                <td class="small text-secondary">
+                  {% if 'OverTime' in item.feature %}
+                    Frequent overtime work is the most prominent driver of attrition, indicating burnout risks and work-life friction.
+                  {% elif 'Income' in item.feature or 'Rate' in item.feature %}
+                    Compensation levels strongly anchor retention; below-market pay is an immediate driver of voluntary turnover.
+                  {% elif 'JobRole' in item.feature %}
+                    Frontline roles (e.g. Sales Representatives, Lab Techs) exhibit higher turnover due to career ladder limitations.
+                  {% elif 'Travel' in item.feature %}
+                    Heavy travel demands accelerate fatigue and push employees toward local opportunities.
+                  {% elif 'Stock' in item.feature %}
+                    Equity grants act as an effective financial anchor, tying tenure directly to organizational success.
+                  {% elif 'Satisfaction' in item.feature or 'Involvement' in item.feature %}
+                    Employee engagement directly mitigates disengagement and quiet quitting.
+                  {% else %}
+                    Influential structural attribute contributing to baseline career mobility and tenure patterns.
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theoretical Foundation & Mathematics -->
+  <div class="card mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-mortarboard-fill text-secondary me-2"></i>Mathematical Foundations of Shapley Attribution</h5>
+    </div>
+    <div class="card-body p-4">
+      <p class="text-secondary small">
+        In cooperative game theory, given a set of features \( F \) and a model prediction function \( f(S) \), the unique Shapley attribution \( \phi_i \) assigned to feature \( i \) is mathematically defined as:
+      </p>
+      <div class="p-3 bg-light rounded text-center my-3 font-monospace small">
+        $$\phi_i = \sum_{S \subseteq F \setminus \{i\}} \frac{|S|!\ (|F| - |S| - 1)!}{|F|!} \Big[ f(S \cup \{i\}) - f(S) \Big]$$
+      </div>
+      <p class="text-secondary small mb-0">
+        This mathematical formulation satisfies four fundamental axioms: <strong>Efficiency</strong> (sum of attributions equals model difference from expectation), <strong>Symmetry</strong> (equal contributors receive equal values), <strong>Dummy/Null Player</strong> (non-contributing features receive zero attribution), and <strong>Additivity</strong>.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const shapJson = {{ global_shap_chart_json | safe }};
+    if (shapJson && document.getElementById("global-shap-page-chart")) {
+      Plotly.newPlot("global-shap-page-chart", shapJson.data, shapJson.layout, {responsive: true, displayModeBar: false});
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,158 @@
+[
+  {
+    "feature": "OverTime: No",
+    "importance": 0.0429
+  },
+  {
+    "feature": "Age",
+    "importance": 0.0422
+  },
+  {
+    "feature": "MonthlyIncome",
+    "importance": 0.0407
+  },
+  {
+    "feature": "OverTime: Yes",
+    "importance": 0.0397
+  },
+  {
+    "feature": "YearsAtCompany",
+    "importance": 0.0367
+  },
+  {
+    "feature": "TotalWorkingYears",
+    "importance": 0.0299
+  },
+  {
+    "feature": "MaritalStatus: Single",
+    "importance": 0.0264
+  },
+  {
+    "feature": "NumCompaniesWorked",
+    "importance": 0.0261
+  },
+  {
+    "feature": "JobLevel",
+    "importance": 0.0232
+  },
+  {
+    "feature": "YearsInCurrentRole",
+    "importance": 0.0226
+  },
+  {
+    "feature": "JobSatisfaction",
+    "importance": 0.02
+  },
+  {
+    "feature": "BusinessTravel: Travel_Frequently",
+    "importance": 0.0161
+  },
+  {
+    "feature": "Department: Research & Development",
+    "importance": 0.0153
+  },
+  {
+    "feature": "JobInvolvement",
+    "importance": 0.0148
+  },
+  {
+    "feature": "JobRole: Research Scientist",
+    "importance": 0.0127
+  },
+  {
+    "feature": "Department: Sales",
+    "importance": 0.012
+  },
+  {
+    "feature": "JobRole: Sales Executive",
+    "importance": 0.0111
+  },
+  {
+    "feature": "JobRole: Laboratory Technician",
+    "importance": 0.0103
+  },
+  {
+    "feature": "MaritalStatus: Divorced",
+    "importance": 0.0095
+  },
+  {
+    "feature": "Education",
+    "importance": 0.0093
+  },
+  {
+    "feature": "MaritalStatus: Married",
+    "importance": 0.0085
+  },
+  {
+    "feature": "BusinessTravel: Non-Travel",
+    "importance": 0.0066
+  },
+  {
+    "feature": "EducationField: Medical",
+    "importance": 0.0058
+  },
+  {
+    "feature": "BusinessTravel: Travel_Rarely",
+    "importance": 0.0052
+  },
+  {
+    "feature": "Gender: Female",
+    "importance": 0.005
+  },
+  {
+    "feature": "EducationField: Life Sciences",
+    "importance": 0.0044
+  },
+  {
+    "feature": "EducationField: Marketing",
+    "importance": 0.0039
+  },
+  {
+    "feature": "Gender: Male",
+    "importance": 0.0037
+  },
+  {
+    "feature": "JobRole: Sales Representative",
+    "importance": 0.0035
+  },
+  {
+    "feature": "JobRole: Healthcare Representative",
+    "importance": 0.0029
+  },
+  {
+    "feature": "JobRole: Manufacturing Director",
+    "importance": 0.0026
+  },
+  {
+    "feature": "EducationField: Technical Degree",
+    "importance": 0.0026
+  },
+  {
+    "feature": "EducationField: Other",
+    "importance": 0.0024
+  },
+  {
+    "feature": "JobRole: Research Director",
+    "importance": 0.0023
+  },
+  {
+    "feature": "PerformanceRating",
+    "importance": 0.002
+  },
+  {
+    "feature": "JobRole: Manager",
+    "importance": 0.0013
+  },
+  {
+    "feature": "EducationField: Human Resources",
+    "importance": 0.0011
+  },
+  {
+    "feature": "Department: Human Resources",
+    "importance": 0.0008
+  },
+  {
+    "feature": "JobRole: Human Resources",
+    "importance": 0.0006
+  }
+]

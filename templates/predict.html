@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block page_title %}Predict Employee Attrition{% endblock %}
+{% block page_subtitle %}Enter customized employee parameters to evaluate turnover probability and SHAP risk factors{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <h6 class="fw-bold mb-1 text-dark">Employee Assessment Form</h6>
+        <small class="text-muted">Please provide custom inputs for each employee attribute below to run the prediction model.</small>
+    </div>
+</div>
+
+<form action="{{ url_for('predict') }}" method="POST" id="predictForm">
+    <!-- Section 1: Demographics & Education -->
+    <div class="card-clean p-4 mb-4">
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+            <i class="bi bi-person-badge text-primary me-2"></i>1. Demographics & Education
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label for="EmployeeRef" class="form-label">Employee Identifier / ID <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="EmployeeRef" name="EmployeeRef" placeholder="e.g. EMP-1042" required>
+            </div>
+            <div class="col-md-3">
+                <label for="Age" class="form-label">Age (Years) <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="Age" name="Age" min="18" max="65" placeholder="e.g. 32" required>
+            </div>
+            <div class="col-md-3">
+                <label for="Gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                <select class="form-select" id="Gender" name="Gender" required>
+                    <option value="" disabled selected>-- Select Gender --</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="MaritalStatus" class="form-label">Marital Status <span class="text-danger">*</span></label>
+                <select class="form-select" id="MaritalStatus" name="MaritalStatus" required>
+                    <option value="" disabled selected>-- Select Status --</option>
+                    <option value="Single">Single</option>
+                    <option value="Married">Married</option>
+                    <option value="Divorced">Divorced</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="Education" class="form-label">Education Level <span class="text-danger">*</span></label>
+                <select class="form-select" id="Education" name="Education" required>
+                    <option value="" disabled selected>-- Select Education Level --</option>
+                    <option value="1">1 - Below College</option>
+                    <option value="2">2 - College</option>
+                    <option value="3">3 - Bachelor</option>
+                    <option value="4">4 - Master</option>
+                    <option value="5">5 - Doctor</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="EducationField" class="form-label">Education Field <span class="text-danger">*</span></label>
+                <select class="form-select" id="EducationField" name="EducationField" required>
+                    <option value="" disabled selected>-- Select Education Field --</option>
+                    <option value="Life Sciences">Life Sciences</option>
+                    <option value="Medical">Medical</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Technical Degree">Technical Degree</option>
+                    <option value="Human Resources">Human Resources</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Department, Role & Tenure -->
+    <div class="card-clean p-4 mb-4">
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+            <i class="bi bi-briefcase text-primary me-2"></i>2. Department, Job Role & Career Experience
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="Department" class="form-label">Department <span class="text-danger">*</span></label>
+                <select class="form-select" id="Department" name="Department" required>
+                    <option value="" disabled selected>-- Select Department --</option>
+                    <option value="Research & Development">Research & Development</option>
+                    <option value="Sales">Sales</option>
+                    <option value="Human Resources">Human Resources</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="JobRole" class="form-label">Job Role <span class="text-danger">*</span></label>
+                <select class="form-select" id="JobRole" name="JobRole" required>
+                    <option value="" disabled selected>-- Select Job Role --</option>
+                    <option value="Sales Executive">Sales Executive</option>
+                    <option value="Research Scientist">Research Scientist</option>
+                    <option value="Laboratory Technician">Laboratory Technician</option>
+                    <option value="Manufacturing Director">Manufacturing Director</option>
+                    <option value="Healthcare Representative">Healthcare Representative</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Sales Representative">Sales Representative</option>
+                    <option value="Research Director">Research Director</option>
+                    <option value="Human Resources">Human Resources</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="JobLevel" class="form-label">Job Level (1 - 5) <span class="text-danger">*</span></label>
+                <select class="form-select" id="JobLevel" name="JobLevel" required>
+                    <option value="" disabled selected>-- Select Level --</option>
+                    <option value="1">1 - Entry</option>
+                    <option value="2">2 - Intermediate</option>
+                    <option value="3">3 - Senior</option>
+                    <option value="4">4 - Lead / Principal</option>
+                    <option value="5">5 - Executive</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="TotalWorkingYears" class="form-label">Total Working Years <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="TotalWorkingYears" name="TotalWorkingYears" min="0" max="45" placeholder="e.g. 8" required>
+            </div>
+            <div class="col-md-3">
+                <label for="YearsAtCompany" class="form-label">Years at Company <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="YearsAtCompany" name="YearsAtCompany" min="0" max="40" placeholder="e.g. 4" required>
+            </div>
+            <div class="col-md-3">
+                <label for="YearsInCurrentRole" class="form-label">Years in Current Role <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="YearsInCurrentRole" name="YearsInCurrentRole" min="0" max="25" placeholder="e.g. 2" required>
+            </div>
+            <div class="col-md-3">
+                <label for="NumCompaniesWorked" class="form-label">Prior Companies Worked <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="NumCompaniesWorked" name="NumCompaniesWorked" min="0" max="15" placeholder="e.g. 2" required>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: Compensation, Overtime & Working Patterns -->
+    <div class="card-clean p-4 mb-4">
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+            <i class="bi bi-cash-coin text-primary me-2"></i>3. Compensation, Overtime & Travel
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="MonthlyIncome" class="form-label">Monthly Income (₹) <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="MonthlyIncome" name="MonthlyIncome" min="10000" max="1000000" step="500" placeholder="e.g. 50000" required>
+            </div>
+            <div class="col-md-4">
+                <label for="OverTime" class="form-label text-danger fw-bold">OverTime Required? <span class="text-danger">*</span></label>
+                <select class="form-select border-danger" id="OverTime" name="OverTime" required>
+                    <option value="" disabled selected>-- Select Overtime Status --</option>
+                    <option value="No">No - Standard Working Hours</option>
+                    <option value="Yes">Yes - Overtime Required</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="BusinessTravel" class="form-label">Business Travel Frequency <span class="text-danger">*</span></label>
+                <select class="form-select" id="BusinessTravel" name="BusinessTravel" required>
+                    <option value="" disabled selected>-- Select Travel Frequency --</option>
+                    <option value="Non-Travel">Non-Travel</option>
+                    <option value="Travel_Rarely">Travel_Rarely</option>
+                    <option value="Travel_Frequently">Travel_Frequently</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 4: Performance & Workplace Engagement -->
+    <div class="card-clean p-4 mb-4">
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+            <i class="bi bi-star text-primary me-2"></i>4. Performance & Workplace Engagement
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="PerformanceRating" class="form-label">Performance Rating <span class="text-danger">*</span></label>
+                <select class="form-select" id="PerformanceRating" name="PerformanceRating" required>
+                    <option value="" disabled selected>-- Select Rating --</option>
+                    <option value="1">1 - Low</option>
+                    <option value="2">2 - Good</option>
+                    <option value="3">3 - Excellent</option>
+                    <option value="4">4 - Outstanding</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="JobSatisfaction" class="form-label">Job Satisfaction (1 - 4) <span class="text-danger">*</span></label>
+                <select class="form-select" id="JobSatisfaction" name="JobSatisfaction" required>
+                    <option value="" disabled selected>-- Select Satisfaction --</option>
+                    <option value="1">1 - Low</option>
+                    <option value="2">2 - Medium</option>
+                    <option value="3">3 - High</option>
+                    <option value="4">4 - Very High</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="JobInvolvement" class="form-label">Job Involvement (1 - 4) <span class="text-danger">*</span></label>
+                <select class="form-select" id="JobInvolvement" name="JobInvolvement" required>
+                    <option value="" disabled selected>-- Select Involvement --</option>
+                    <option value="1">1 - Low</option>
+                    <option value="2">2 - Medium</option>
+                    <option value="3">3 - High</option>
+                    <option value="4">4 - Very High</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit & Clear Buttons -->
+    <div class="d-flex justify-content-end gap-3 mb-5">
+        <button type="reset" class="btn btn-light border px-4 py-2">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Clear Form
+        </button>
+        <button type="submit" class="btn btn-primary-custom px-5 py-2 shadow-sm">
+            <i class="bi bi-person-check me-1"></i> Predict Attrition
+        </button>
+    </div>
+</form>
+{% endblock %}

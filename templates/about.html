@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}About MCA Project - Employee Attrition & XAI{% endblock %}
+{% block page_title %}MCA Major Project Documentation & Viva Guide{% endblock %}
+
+{% block extra_head %}
+<!-- Mermaid.js for System Architecture Diagram -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <!-- Project Title Banner -->
+  <div class="card mb-4 border-0 shadow-sm bg-white">
+    <div class="card-body p-4">
+      <span class="badge bg-primary fs-6 px-3 py-1 mb-2">Master of Computer Applications (MCA) Major Project</span>
+      <h2 class="fw-bold text-dark mb-2">Employee Attrition Analysis and Prediction Using Explainable AI</h2>
+      <p class="text-secondary lead fs-6 mb-0">
+        An end-to-end Machine Learning and Explainable AI (XAI) decision-support system designed to forecast employee voluntary turnover risk, explain underlying organizational drivers via SHAP, and recommend evidence-based HR retention strategies.
+      </p>
+    </div>
+  </div>
+
+  <!-- System Architecture Diagram Card -->
+  <div class="card mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-diagram-3-fill text-primary me-2"></i>End-to-End System Architecture</h5>
+      <small class="text-muted">High-level architectural workflow from raw data ingestion to explainable HR decision support</small>
+    </div>
+    <div class="card-body p-4 text-center">
+      <div class="mermaid">
+flowchart TD
+    subgraph Data Layer
+        A[IBM HR Analytics Benchmark Dataset<br/>1,470 Records, 35 Attributes] --> B[Data Validation & Cleaning]
+        B --> C[Identifier & Zero-Variance Column Drop<br/>EmployeeNumber, EmployeeCount, StandardHours]
+    end
+
+    subgraph Feature Engineering & Preprocessing
+        C --> D[Stratified Train-Test Split 80/20]
+        D --> E[Scikit-learn ColumnTransformer]
+        E --> F[Numerical: StandardScaler]
+        E --> G[Categorical: OneHotEncoder]
+    end
+
+    subgraph Machine Learning Pipeline
+        F & G --> H[Multi-Model Training Benchmark]
+        H --> I1[Logistic Regression]
+        H --> I2[Decision Tree]
+        H --> I3[Random Forest]
+        H --> I4[XGBoost Classifier]
+        I1 & I2 & I3 & I4 --> J[Model Evaluation & Selection<br/>ROC-AUC, Recall, F1-Score]
+        J --> K[Champion Model Artifacts Persistence<br/>Joblib & JSON Metadata]
+    end
+
+    subgraph Explainable AI Layer
+        K --> L[SHAP Attribution Engine]
+        L --> M1[Global Feature Importance]
+        L --> M2[Individual Waterfall Decomposition]
+        L --> M3[Positive Risk vs Protective Buffers]
+    end
+
+    subgraph Presentation & Application Layer
+        M1 & M2 & M3 --> N[Flask Web Application]
+        N --> O1[Executive HR Analytics Dashboard]
+        N --> O2[Interactive Employee Predict Form]
+        N --> O3[Bulk CSV Prediction Engine]
+        N --> O4[Model Evaluation & ROC Comparison]
+        N --> O5[SQLite Audit History Logging]
+    end
+      </div>
+    </div>
+  </div>
+
+  <!-- Existing System vs Proposed System -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-6">
+      <div class="card h-100 border-danger-subtle">
+        <div class="card-header bg-danger-subtle text-danger fw-bold">
+          <i class="bi bi-x-circle-fill me-2"></i>Limitations of Existing Traditional Systems
+        </div>
+        <div class="card-body">
+          <ul class="small text-secondary ps-3 mb-0">
+            <li class="mb-2"><strong>Reactive Exit Interviews:</strong> Interventions happen after an employee has already resigned, making retention impossible.</li>
+            <li class="mb-2"><strong>Heuristic Gut Feeling:</strong> Managers rely on subjective opinions rather than empirical, multidimensional workforce patterns.</li>
+            <li class="mb-2"><strong>Black-Box Predictions:</strong> Legacy AI tools output binary scores without explaining why an employee is at risk.</li>
+            <li><strong>Broad-Brush Policies:</strong> Organizations apply blanket salary or perk increases without diagnosing specific friction points.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card h-100 border-success-subtle">
+        <div class="card-header bg-success-subtle text-success fw-bold">
+          <i class="bi bi-check-circle-fill me-2"></i>Advantages of Proposed Explainable AI Solution
+        </div>
+        <div class="card-body">
+          <ul class="small text-secondary ps-3 mb-0">
+            <li class="mb-2"><strong>Proactive Forecasting:</strong> Flags elevated attrition probability before resignation occurs, allowing timely intervention.</li>
+            <li class="mb-2"><strong>True SHAP Explainability:</strong> Calculates exact mathematical Shapley contributions for both risk drivers and protective factors.</li>
+            <li class="mb-2"><strong>Responsible Decision Support:</strong> Adheres to ethical guidelines by providing guidance rather than automated employment actions.</li>
+            <li><strong>Evidence-Based Retention:</strong> Automatically translates top SHAP risk drivers into tailored, actionable HR recommendations.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tech Stack Grid -->
+  <div class="card mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-stack text-primary me-2"></i>Comprehensive Technology Stack</h5>
+    </div>
+    <div class="card-body p-4">
+      <div class="row g-3">
+        <div class="col-md-3 col-sm-6">
+          <div class="p-3 border rounded h-100 bg-light">
+            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-filetype-py text-primary me-2"></i>Core Backend</h6>
+            <div class="small text-muted">Python 3.12, Flask 3.x, SQLite3, Joblib</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="p-3 border rounded h-100 bg-light">
+            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-cpu text-success me-2"></i>Machine Learning</h6>
+            <div class="small text-muted">Scikit-learn, XGBoost, NumPy, Pandas</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="p-3 border rounded h-100 bg-light">
+            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-eye text-warning me-2"></i>Explainable AI</h6>
+            <div class="small text-muted">SHAP (SHapley Additive exPlanations), TreeExplainer</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="p-3 border rounded h-100 bg-light">
+            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-palette text-info me-2"></i>Frontend & UI</h6>
+            <div class="small text-muted">Bootstrap 5, Plotly.js, Mermaid.js, Custom CSS</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Viva Voce Preparation Guide (MCA Examiner Q&A) -->
+  <div class="card mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-patch-question-fill text-danger me-2"></i>MCA Viva Voce Defense & Technical Q&A Guide</h5>
+      <small class="text-muted">Key questions frequently asked by external examiners and academic evaluators</small>
+    </div>
+    <div class="card-body p-4">
+      <div class="accordion" id="vivaAccordion">
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="viva1">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#vivaCollapse1">
+              <strong>Q1: Why is raw accuracy an insufficient metric for evaluating employee attrition models?</strong>
+            </button>
+          </h2>
+          <div id="vivaCollapse1" class="accordion-collapse collapse show" data-bs-parent="#vivaAccordion">
+            <div class="accordion-body small text-secondary">
+              The benchmark IBM HR dataset contains 1,233 staying employees and only 237 leaving employees (~16.1% attrition rate). A trivial, naive model that predicts "Nobody ever leaves" would achieve an <strong>83.9% accuracy</strong> while failing to catch a single exiting employee! In organizational retention, <em>False Negatives</em> (failing to identify an employee who resigns) are significantly costlier than <em>False Positives</em>. Therefore, models must be evaluated on <strong>Recall</strong>, <strong>Precision</strong>, <strong>F1-score</strong>, and <strong>ROC-AUC</strong> rather than raw accuracy.
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="viva2">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#vivaCollapse2">
+              <strong>Q2: How does SHAP differ from traditional feature importance (like Gini importance in Random Forest)?</strong>
+            </button>
+          </h2>
+          <div id="vivaCollapse2" class="accordion-collapse collapse" data-bs-parent="#vivaAccordion">
+            <div class="accordion-body small text-secondary">
+              Traditional Gini importance or feature weights only provide a global aggregate score, suffer from bias toward continuous/high-cardinality features, and cannot explain individual predictions. In contrast, <strong>SHAP</strong> (rooted in cooperative game theory) computes <em>local, instance-specific Shapley values</em> that add up exactly to the difference between the base model output and the individual prediction (\(\sum \phi_i = f(x) - E[f(x)]\)). Furthermore, SHAP reveals both the <em>magnitude</em> and the <em>direction</em> (whether a feature increases or decreases attrition risk) for each individual employee.
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="viva3">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#vivaCollapse3">
+              <strong>Q3: How was data leakage prevented during the preprocessing pipeline?</strong>
+            </button>
+          </h2>
+          <div id="vivaCollapse3" class="accordion-collapse collapse" data-bs-parent="#vivaAccordion">
+            <div class="accordion-body small text-secondary">
+              Data leakage was prevented by performing a stratified 80/20 train-test split <em>before</em> fitting any transformers. The <code>ColumnTransformer</code> (incorporating <code>StandardScaler</code> and <code>OneHotEncoder</code>) was fitted exclusively on the training partition (<code>X_train</code>). The test partition and new user inputs are transformed using the previously fitted parameters without refitting. Constant columns (<code>EmployeeCount</code>, <code>Over18</code>, <code>StandardHours</code>) and identifier columns (<code>EmployeeNumber</code>) were removed to avoid artificial shortcuts.
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="viva4">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#vivaCollapse4">
+              <strong>Q4: What are the ethical and responsible AI guidelines implemented in this project?</strong>
+            </button>
+          </h2>
+          <div id="vivaCollapse4" class="accordion-collapse collapse" data-bs-parent="#vivaAccordion">
+            <div class="accordion-body small text-secondary">
+              Under Responsible AI principles:
+              <ol class="mb-0 ps-3">
+                <li>Predictions are explicitly presented as <strong>statistical estimates</strong>, not deterministic facts.</li>
+                <li>The system explicitly warns that SHAP establishes <strong>correlation</strong>, not causation.</li>
+                <li>The system must <strong>never</strong> be used to automate employment termination, denial of promotion, or punitive actions.</li>
+                <li>All outputs emphasize human oversight, manager empathy, and constructive retention support.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

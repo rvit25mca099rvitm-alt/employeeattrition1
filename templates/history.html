@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block page_title %}Prediction History{% endblock %}
+{% block page_subtitle %}Audit log of past employee attrition risk assessments with Individual Explainable AI (XAI) analysis{% endblock %}
+
+{% block content %}
+<div class="card-clean p-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h6 class="fw-bold text-dark mb-0">
+                <i class="bi bi-clock-history text-primary me-2"></i>Logged Assessment Records
+            </h6>
+            <small class="text-muted">Total recorded predictions: <strong>{{ records | length }}</strong></small>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <input type="text" id="historySearch" class="form-control form-control-sm" placeholder="Search by ID, role, or risk..." style="max-width: 250px;" onkeyup="filterHistory()">
+            <a href="{{ url_for('predict') }}" class="btn btn-sm btn-primary-custom text-nowrap">
+                <i class="bi bi-plus-circle me-1"></i> New Assessment
+            </a>
+        </div>
+    </div>
+
+    {% if records %}
+        <div class="table-responsive">
+            <table class="table-clean" id="historyTable">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Employee Ref</th>
+                        <th>Department & Role</th>
+                        <th>Age / Income</th>
+                        <th>Overtime</th>
+                        <th>Prediction</th>
+                        <th>Probability</th>
+                        <th>Risk Level</th>
+                        <th class="text-center">Explainable AI Analysis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rec in records %}
+                        <tr>
+                            <td class="text-nowrap small text-muted">
+                                {{ rec.created_at }}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border fw-semibold">{{ rec.employee_ref }}</span>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-dark small">{{ rec.job_role }}</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">{{ rec.department }}</div>
+                            </td>
+                            <td class="small">
+                                {{ rec.age }} yrs &bull; ₹{{ "{:,.0f}".format(rec.monthly_income) if rec.monthly_income else 'N/A' }}
+                            </td>
+                            <td>
+                                {% if rec.overtime == 'Yes' %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">No</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if rec.prediction == 'Yes' %}
+                                    <span class="badge bg-danger">Leave (Yes)</span>
+                                {% else %}
+                                    <span class="badge bg-success">Retain (No)</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold">
+                                {{ rec.probability }}%
+                            </td>
+                            <td>
+                                {% if rec.risk_category == 'High Risk' %}
+                                    <span class="badge-high-risk small">{{ rec.risk_category }}</span>
+                                {% elif rec.risk_category == 'Medium Risk' %}
+                                    <span class="badge-medium-risk small">{{ rec.risk_category }}</span>
+                                {% else %}
+                                    <span class="badge-low-risk small">{{ rec.risk_category }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-primary text-nowrap px-3" data-bs-toggle="modal" data-bs-target="#xaiModal{{ rec.id }}">
+                                    <i class="bi bi-diagram-3 me-1"></i> Individual XAI
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Modal: Individual Employee Attrition Analysis Using Explainable AI -->
+                        <div class="modal fade" id="xaiModal{{ rec.id }}" tabindex="-1" aria-labelledby="modalLabel{{ rec.id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-lg modal-dialog-centered">
+                                <div class="modal-content border-0 shadow">
+                                    <div class="modal-header bg-light border-bottom">
+                                        <h6 class="modal-title fw-bold text-dark" id="modalLabel{{ rec.id }}">
+                                            <i class="bi bi-person-badge text-primary me-2"></i>Explainable AI Analysis for Employee: <span class="text-primary">{{ rec.employee_ref }}</span>
+                                        </h6>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body p-4">
+                                        <!-- Header summary -->
+                                        <div class="d-flex flex-wrap justify-content-between align-items-center p-3 mb-3 bg-light rounded-3 border">
+                                            <div>
+                                                <div class="fw-bold text-dark fs-6">{{ rec.job_role }}</div>
+                                                <small class="text-muted">{{ rec.department }} &bull; Age: {{ rec.age }} yrs &bull; Monthly Income: ₹{{ "{:,.0f}".format(rec.monthly_income) if rec.monthly_income else 'N/A' }}</small>
+                                            </div>
+                                            <div class="text-end mt-2 mt-sm-0">
+                                                <span class="d-block small text-muted text-uppercase fw-bold">Turnover Chance</span>
+                                                <span class="fs-5 fw-bold text-danger">{{ rec.probability }}%</span>
+                                                <span class="ms-2 {% if rec.risk_category == 'High Risk' %}badge-high-risk{% elif rec.risk_category == 'Medium Risk' %}badge-medium-risk{% else %}badge-low-risk{% endif %} small">
+                                                    {{ rec.risk_category }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Visual Risk Scale Bar (Low Risk to High Risk Visualization) -->
+                                        <div class="p-3 mb-3 bg-light rounded-3 border">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span class="small fw-semibold text-dark">
+                                                    <i class="bi bi-speedometer2 text-primary me-1"></i>Risk Scale Visualization:
+                                                </span>
+                                                <span class="small fw-bold" style="color: {% if rec.probability >= 60 %}#dc3545{% elif rec.probability >= 30 %}#d97706{% else %}#198754{% endif %};">
+                                                    {{ rec.probability }}% &bull; {{ rec.risk_category }}
+                                                </span>
+                                            </div>
+                                            <!-- 3-Zone Risk Spectrum Bar -->
+                                            <div style="position: relative; height: 18px; border-radius: 9px; background: linear-gradient(to right, #10b981 0%, #10b981 30%, #f59e0b 30%, #f59e0b 60%, #ef4444 60%, #ef4444 100%); margin: 10px 0 6px;">
+                                                <!-- Needle Marker pointing at exact employee probability -->
+                                                <div style="position: absolute; left: {{ rec.probability }}%; top: -6px; transform: translateX(-50%); text-align: center; z-index: 2;">
+                                                    <div style="width: 14px; height: 14px; background-color: #0f172a; border: 2.5px solid #ffffff; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.35); margin: 0 auto;"></div>
+                                                    <div style="width: 2px; height: 10px; background-color: #0f172a; margin: 0 auto;"></div>
+                                                </div>
+                                            </div>
+                                            <!-- Visual Zone Labels -->
+                                            <div class="d-flex justify-content-between px-1" style="font-size: 0.75rem; color: #64748b;">
+                                                <span class="fw-bold text-success"><i class="bi bi-square-fill me-1" style="font-size: 0.6rem;"></i>Low Risk (0% - 29%)</span>
+                                                <span class="fw-bold text-warning" style="color: #d97706 !important;"><i class="bi bi-square-fill me-1" style="font-size: 0.6rem;"></i>Medium Risk (30% - 59%)</span>
+                                                <span class="fw-bold text-danger"><i class="bi bi-square-fill me-1" style="font-size: 0.6rem;"></i>High Risk (60% - 100%)</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Factors Increasing Turnover Risk -->
+                                        <div class="mb-3">
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <span class="badge bg-danger text-white px-2 py-1"><i class="bi bi-arrow-up-right"></i> Main Concern Areas</span>
+                                                <strong class="text-danger small">Factors increasing turnover risk for this employee:</strong>
+                                            </div>
+                                            <div class="p-3 bg-danger-subtle rounded-3 border border-danger-subtle small text-dark">
+                                                {% if rec.xai_details and rec.xai_details.pos_items %}
+                                                    <ul class="mb-0 ps-3">
+                                                        {% for item in rec.xai_details.pos_items %}
+                                                            <li class="mb-1"><strong>{{ item }}</strong></li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% else %}
+                                                    No major risk factors were recorded for this employee.
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Factors Supporting Retention -->
+                                        <div class="mb-3">
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <span class="badge bg-success text-white px-2 py-1"><i class="bi bi-arrow-down-right"></i> Positive Retention Factors</span>
+                                                <strong class="text-success small">Factors supporting retention for this employee:</strong>
+                                            </div>
+                                            <div class="p-3 bg-success-subtle rounded-3 border border-success-subtle small text-dark">
+                                                {% if rec.xai_details and rec.xai_details.neg_items %}
+                                                    <ul class="mb-0 ps-3">
+                                                        {% for item in rec.xai_details.neg_items %}
+                                                            <li class="mb-1"><strong>{{ item }}</strong></li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% else %}
+                                                    No major retention factors were recorded.
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Personalized Plain English XAI Summary -->
+                                        <div class="p-3 rounded-3 border bg-white shadow-sm mt-3">
+                                            <h6 class="fw-bold text-dark mb-2">
+                                                <i class="bi bi-chat-left-text-fill text-primary me-2"></i>How to Understand This Prediction:
+                                            </h6>
+                                            <p class="small text-secondary mb-2" style="line-height: 1.6;">
+                                                {{ rec.xai_details.individual_reason if rec.xai_details else 'The model evaluated this employee based on historical workforce patterns.' }}
+                                            </p>
+                                            <div class="p-2 bg-light rounded border small text-primary fw-semibold mb-2">
+                                                <i class="bi bi-lightbulb-fill text-warning me-1"></i> {{ rec.xai_details.individual_action if rec.xai_details else 'HR Action: Monitor engagement during regular review cycles.' }}
+                                            </div>
+                                            <small class="text-muted d-block" style="font-size: 0.74rem;">
+                                                <em>Note: This prediction is a decision-support guide to help HR engage in proactive conversation, not a final guarantee that the employee will leave.</em>
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer bg-light border-top">
+                                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox text-muted display-4 mb-2"></i>
+            <h6 class="text-dark fw-bold">No Prediction Records Yet</h6>
+            <p class="text-muted small">Run your first employee prediction to populate the audit history.</p>
+            <a href="{{ url_for('predict') }}" class="btn btn-primary-custom btn-sm">
+                <i class="bi bi-person-check me-1"></i> Start Prediction
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function filterHistory() {
+        const query = document.getElementById('historySearch').value.toLowerCase();
+        const table = document.getElementById('historyTable');
+        if (!table) return;
+        const rows = table.getElementsByTagName('tr');
+
+        for (let i = 1; i < rows.length; i++) {
+            const text = rows[i].innerText.toLowerCase();
+            rows[i].style.display = text.includes(query) ? '' : 'none';
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block page_title %}Explainable AI (XAI) with SHAP{% endblock %}
+{% block page_subtitle %}Global feature importance and mathematical interpretability across the workforce{% endblock %}
+
+{% block content %}
+<!-- Intro Banner -->
+<div class="card-clean p-4 mb-4 bg-white">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <h5 class="fw-bold text-dark mb-2">
+                <i class="bi bi-lightbulb-fill text-warning me-2"></i>Understanding Explainable AI in Human Resources
+            </h5>
+            <p class="text-muted small mb-3">
+                Traditional machine learning models often behave as "black boxes" — generating risk probabilities without clarifying why. In HR decision-making, opacity introduces bias and uncertainty. This system implements <strong>SHAP (SHapley Additive exPlanations)</strong> based on cooperative game theory to allocate mathematically sound feature attributions to every employee predictor.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <span class="badge bg-light text-dark border px-3 py-2">
+                    <i class="bi bi-check2 text-success me-1"></i> Consistent Global Ranking
+                </span>
+                <span class="badge bg-light text-dark border px-3 py-2">
+                    <i class="bi bi-check2 text-success me-1"></i> Additive Feature Independence
+                </span>
+                <span class="badge bg-light text-dark border px-3 py-2">
+                    <i class="bi bi-check2 text-success me-1"></i> Real Dataset Grounded Values
+                </span>
+            </div>
+        </div>
+        <div class="col-lg-4 text-center mt-3 mt-lg-0 border-start">
+            <div class="p-3">
+                <div class="text-primary fw-bold display-6 mb-1">51</div>
+                <div class="text-muted small">Evaluated Encoded Features</div>
+                <div class="text-success fw-bold fs-4 mt-2">1,470</div>
+                <div class="text-muted small">Dataset Historical Records</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section A: Top 5 Attrition Factors (Horizontal Bar Chart) -->
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-6">
+        <div class="card-clean h-100 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-award text-primary me-2"></i>A. Top 5 Global Attrition Factors
+                    </h6>
+                    <small class="text-muted">Ranked by Mean Absolute SHAP Value across the dataset</small>
+                </div>
+                <span class="badge bg-primary text-white">Top 5 Drivers</span>
+            </div>
+
+            <div style="position: relative; height: 290px;">
+                <canvas id="top5Chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top 5 Breakdown Table -->
+    <div class="col-12 col-lg-6">
+        <div class="card-clean h-100 p-4">
+            <h6 class="fw-bold text-dark mb-3">
+                <i class="bi bi-card-list text-primary me-2"></i>Top 5 Factor Interpretations for HR
+            </h6>
+            <div class="table-responsive">
+                <table class="table-clean">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Feature Name</th>
+                            <th>Mean |SHAP|</th>
+                            <th>HR Context & Meaning</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for factor in top5_factors %}
+                            <tr>
+                                <td><span class="badge bg-light text-dark border">#{{ loop.index }}</span></td>
+                                <td><strong class="text-primary">{{ factor.feature }}</strong></td>
+                                <td><span class="badge bg-secondary">{{ factor.importance }}</span></td>
+                                <td class="small text-muted">
+                                    {% if 'OverTime' in factor.feature %}
+                                        Working excessive overtime hours significantly spikes employee turnover rates.
+                                    {% elif 'MonthlyIncome' in factor.feature %}
+                                        Competitive compensation provides primary baseline retention stability.
+                                    {% elif 'Age' in factor.feature %}
+                                        Junior, earlier-career staff exhibit noticeably higher job mobility.
+                                    {% elif 'StockOption' in factor.feature %}
+                                        Equity ownership establishes strong multi-year organizational commitment.
+                                    {% elif 'TotalWorkingYears' in factor.feature %}
+                                        Experienced professionals demonstrate lower volatility and steady retention.
+                                    {% else %}
+                                        Substantial statistical weight impacting overall model confidence.
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section B: Top 15 Expanded Feature Importance Chart -->
+<div class="card-clean p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h6 class="fw-bold text-dark mb-0">
+                <i class="bi bi-bar-chart text-primary me-2"></i>B. Top 15 Extended Global Feature Importance
+            </h6>
+            <small class="text-muted">Comprehensive perspective on relative feature impact across the enterprise</small>
+        </div>
+        <span class="badge bg-light text-muted border">Mean |SHAP|</span>
+    </div>
+
+    <div style="position: relative; height: 380px;">
+        <canvas id="top15Chart"></canvas>
+    </div>
+</div>
+
+<!-- Legal & Ethical Guidance Note -->
+<div class="alert alert-light border p-3 small text-muted">
+    <i class="bi bi-shield-check text-primary me-2"></i>
+    <strong>Methodological Notice:</strong> Global SHAP importance measures the average magnitude of influence each feature exerts on the prediction model across the training and test cohorts. It indicates statistical predictive relevance rather than deterministic cause-and-effect. Retention actions should always be paired with individual conversations and managerial empathy.
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const top5Data = {{ top5_factors | tojson }};
+    const top15Data = {{ top15_factors | tojson }};
+
+    // Top 5 Horizontal Chart
+    new Chart(document.getElementById('top5Chart'), {
+        type: 'bar',
+        data: {
+            labels: top5Data.map(d => d.feature),
+            datasets: [{
+                label: 'Mean |SHAP Value|',
+                data: top5Data.map(d => d.importance),
+                backgroundColor: '#2563eb',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { grid: { color: '#f1f5f9' }, title: { display: true, text: 'Mean Absolute Impact' } },
+                y: { grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Top 15 Horizontal Chart
+    new Chart(document.getElementById('top15Chart'), {
+        type: 'bar',
+        data: {
+            labels: top15Data.map(d => d.feature),
+            datasets: [{
+                label: 'Mean |SHAP Value|',
+                data: top15Data.map(d => d.importance),
+                backgroundColor: '#60a5fa',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { grid: { color: '#f1f5f9' }, title: { display: true, text: 'Mean Absolute Impact' } },
+                y: { grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+</script>
+{% endblock %}
